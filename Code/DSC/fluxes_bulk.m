@@ -1,27 +1,22 @@
-function flx0 = fluxes_bulk(t,input,dt,nspec,...
-    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,press,alpha_m,DSC.Q)
+function flx0 = fluxes_bulk(t,input,dt,nspec,Cp_liq,Cp_vap,...
+    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,press,alpha_m,DSC, tot_vol)
     
 R = 8.314472;
-
+t
 %Load Local Variables
 T = input(1);
-Bc = input(2:nspec+1);
-Gc = input(nspec+2:2*nspec+1);
-
-%Set power
-if t < DSC.time(1)
-    Q = 0.0; %No Power before experiment
-else
-    Q = DSC.Q(find(DSC.time >= t,1 ) ); 
-end
+Bc = input(2:nspec+1)';
+Gc = input(nspec+2:2*nspec+1)';
+Q = DSC.Q(find(DSC.time >= t,1 ) );
 
 
-Bc( Bc <= 0.0 || ~isreal(Bc) ) = 0.0;
-Gc( Gc <= 0.0 || ~isreal(Gc) ) = 0.0;
+
+Bc( Bc <= 0.0 | ~isreal(Bc) ) = 0.0;
+Gc( Gc <= 0.0 | ~isreal(Gc) ) = 0.0;
 
 % Equilibrium pressures at the DSC temperature
-psat(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T_TD)./R);
-csat(1:nspec) = MW.*psat./R./T_TD;
+psat(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T)./R);
+csat(1:nspec) = MW.*psat./R./T;
 
 % Diffusion coefficients of the species
 D(1:nspec) = Dn(1:nspec).*(T/T_ref).^mu1(1:nspec);
@@ -59,7 +54,7 @@ if sum(Bc) > 1.0e-22;
     
     % Transitional correction
     % Mean velocity of the gas molecules:
-    c_ave(1:nspec) = sqrt(8.*R.*T_TD./MW(1:nspec)./pi);
+    c_ave(1:nspec) = sqrt(8.*R.*T./MW(1:nspec)./pi);
     % Mean free path of the gas molecules:
     lambda(1:nspec) = 3.*D(1:nspec)./c_ave(1:nspec);
     % Knudsen number:
@@ -81,12 +76,11 @@ pv_a(1:nspec) = peq;
 % Partial pressures far away from the bulk
 pv_i(1:nspec) = Gc(1:nspec).*R.*T./MW(1:nspec);
 
-
+% Mass flux of each compound to the particles
 for i = 1:nspec
-    if mp > 0.0 && (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press) > 0.0
-        % Mass flux of each compound to the particles
+    if Bc_tot > 0.0 && (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press) > 0.0
         b_flx(i) = 4.*pi.*rp.*press.*D(i).*beeta(i).*MW(i).*log((1.0 - pv_a(i)./press)./(1.0 - pv_i(1,i)./press))./R./T;
-    elseif mp > 0.0 && (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press) <= 0.0
+    elseif Bc_tot > 0.0 && (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press) <= 0.0
         b_flx(i) = 4.*pi.*rp*D(i).*beeta(i).*MW(i).*(pv_i(i)-pv_a(i))./R./T;
     else
         b_flx(i) = 0.0;
@@ -94,7 +88,7 @@ for i = 1:nspec
 end
 
 % Mass flux of each compound to the gas phase
-g_flx(1:nspec) = -b_flx;
+g_flx(1:nspec) = -b_flx ./ tot_vol;
 
 %Energy Balance (Q is going out of the system)
 dT_latent = sum( b_flx(1:nspec) .* dHvap(1:nspec) );
@@ -104,7 +98,7 @@ dTdt = ( -Q - dT_latent) / (dT_Cpliq + dT_Cpvap);
 
 % Changing to column vector
 flx0 = [dTdt, b_flx, g_flx]';
-flx0( ~isreal(flx0) || isnan(flx0) ) = 0.0;
+flx0( ~isreal(flx0) | isnan(flx0) ) = 0.0;
 
 
 

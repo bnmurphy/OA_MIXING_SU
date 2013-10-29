@@ -1,5 +1,3 @@
-function mfr_dist = model_size_dist(X_i, c_aer_dist_int, alpha_in, TD_in, dhvap_in)
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is the main program to model the dynamic evaporation in the        %
 %   Differential Scanning Calorimeter. An energy profile and mixture      %
@@ -11,7 +9,7 @@ function mfr_dist = model_size_dist(X_i, c_aer_dist_int, alpha_in, TD_in, dhvap_
 % particle issues afterward
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% close all
+close all
 % clear all
 
 % Loading the inputs:
@@ -79,7 +77,7 @@ Bc = mp_i;
 
 % Total concentrations of the species 
 % ctot(1:nspec) = cgas + X_i.*c_aer_dist(end);
-ctot(1:nspec) = cgas + X_i.*mp(1,1);
+ctot(1:nspec) = cgas + X_i .* Bc;
     
 % Mean velocity of the gas molecules:
 c_ave(1:nspec) = sqrt(8.*R.*T_i./MW./pi);
@@ -99,19 +97,23 @@ Gc(1:nspec) = cgas;
 input = [T_i, Bc, Gc]'; % T, Temperature, K  
                         % Bc, Masses of each species bulk (kg)
                         % Gc, Gas phase concentrations (kg/m3)
-time = DSC.time;
+time = linspace(DSC.time(1), DSC.time(end), 10);
 dt = mean(diff(time));
 
 % Solving the mass fluxes 
 options = odeset('RelTol',1E-6,'AbsTol',1E-19);    
-[tout, output] = ode45(@fluxes_bulk, time, input0,  options, dt,nspec,...
-    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m);
+[tout, output] = ode45(@fluxes_bulk, time, input,  options, dt,nspec,...
+    Cp_liq, Cp_vap,...
+    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m, DSC, tot_vol);
 
-T_out = output(:,1);
-Bc_out = output(:,2:nspec+1);
-Gc_out = output(:,nspec+2, 2*nspec+1);
+T_out = output(:,1)
+Bc_out = output(:,2:nspec+1)
+Gc_out = output(:,nspec+2: 2*nspec+1)
 
 
 
 
-end
+
+
+
+

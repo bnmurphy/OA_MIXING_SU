@@ -17,14 +17,19 @@ MW = [0.524 0.479 0.434    0.389   0.344   0.299 0.250 0.225 0.200];
 % given in either vapor pressures or saturation concentrations. 
 T_ref = 298.15;
 % % Vapor pressure in Pascals
-% pstar = []; %
+pstar = [6.61e-9,...
+         3.103e-9,...
+         1.725e-9,...
+         9.699e-10,...
+         5.509e-10,...
+         3.15e-10,...
+         1.813,...
+         1.049e-10,...
+         1.718e-9];
 % Saturation concentration in ug/m3
-%cstar = pstar.*MW.*1e9./R./T_ref 
-cstar = [1e-5 1e-4 1e-3 1e-2 1e-1 1 1e1 1e2 1e3 ];
-% Volatilities of the surrogate compounds at T_ref [Pa]
-pstar = cstar*R.*T_ref./MW./1e9;
+cstar = pstar.*MW.*1e9./R./T_ref 
 
-% Diffusion coefficients of the surrogate compounds in air at T_ref [m2/s]
+% Diffusion coefficients in air of the surrogate compounds in air at T_ref [m2/s]
 % and the temperature-dependent factor
 Dn = [5.0e-6 ] .* ones(1,nspec); 
 mu1 = [1.75 ] .* ones(1,nspec);
@@ -39,7 +44,11 @@ sigma1 = [0.05] .* ones(1,nspec); %
 %dHvap = 1e3.*[189.3134  169.5311  150.8227  133.1875  116.6248  101.1333 ]; % 
 %dHvap = 1e3.*(85 - 11.*log10(cstar));
 % dHvap = 1e3.*(131 - 11.*log10(cstar));
-dHvap = dhvap_in .* ones(1,nspec) .* 1000;
+dHvap = 100 .* ones(1,nspec) .* 1000;
+
+% Heat Capacity of Vapor and Liquid Phases
+Cp_liq = 140 .* ones(1,nspec) .* 1000;
+Cp_vap = 120 .* ones(1,nspec) .* 1000;
 
 % Mass and thermal accommodation coefficients of the surrogate species
 alpha_m = [0.05 ] .* ones(1,nspec);
@@ -61,9 +70,9 @@ rhol_i = sum(X_i.*rho); % Mass-weighted average
 sigmal_i = sum(Xm_i.*sigma1); % Mole-weighted average
 
 %Calculate Initial Mass concentration
-liq_vol = DAC.mass ./ rhol_i; %m3
+liq_vol = DSC.mass ./ rhol_i; %m3
 tot_vol = liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
-DSC.mass_conc = DAC.mass ./ tot_vol; %Total mass concentration (kg/m3)
+DSC.mass_conc = DSC.mass ./ tot_vol; %Total mass concentration (kg/m3)
 
 
 
