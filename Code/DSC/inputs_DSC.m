@@ -35,7 +35,7 @@ DSC.mass = meas.mass ./ 1e6; %mg -> kg
 DSC.units.mass = 'kg';
 
 %Load initial Temperature
-T0 = DSC.T(1);
+T_i = DSC.T(1);
 
 
 

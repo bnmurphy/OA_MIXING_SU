@@ -1,26 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%This file contains the temperature and the                               % 
-%properties of the initial size distribution                              %
+%This file contains the properties of the initial size distribution                              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Number of different TD temperatures
-ntrials = 1;
-
-% Initial temperature in K
-T_i = 24.0 + 273.15;
-
-% Thermodenuder temperature range (K)
-Tf_range = [24 TD_in] + 273.15;
-
-% Thermodenuder temperatures (K)
-if ntrials > 1
-    for i = 1:ntrials
-        T_f(i) = Tf_range(1) + (i-1).*diff(Tf_range)./(ntrials-1);
-    end
-else
-%     T_f = mean(Tf_range);
-    T_f = TD_in + 273.15;
-end
 
 % Size bins
 % Number of bins

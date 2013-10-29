@@ -3,6 +3,7 @@ function flx0 = fluxes_size_dist(t,input0,dt,nbins,nspec,...
     
 R = 8.314472;
 
+%Reshape from column vector to array
 for i = 1:nspec
     input(1:nbins+3,i) = input0(1+(i-1).*(nbins+3):i.*(nbins+3));
 end

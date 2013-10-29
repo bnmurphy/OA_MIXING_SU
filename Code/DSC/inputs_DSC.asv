@@ -20,7 +20,7 @@ p = 101325.0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Load Measurement Data (time, T, Q, Cp, Mass)
-load('DSC_DATA/CappaMix_01.mat')
+load('DSC_DATA/CappaMix_02.mat')
 
 %Convert Measured Quantities
 DSC.time = meas.time .* 60;  %min -> s
@@ -34,7 +34,8 @@ DSC.units.Cp = 'J/(kg K)';
 DSC.mass = meas.mass ./ 1e6; %mg -> kg
 DSC.units.mass = 'kg';
 
-T0 = DSC.T(1);
+%Load initial Temperature
+T_i = DSC.T(1);
 
 
 
