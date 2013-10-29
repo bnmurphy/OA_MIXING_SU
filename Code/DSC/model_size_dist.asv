@@ -15,10 +15,8 @@ function mfr_dist = model_size_dist(X_i, c_aer_dist_int, alpha_in, TD_in, dhvap_
 inputs_DSC
 % Properties of the evaporating compounds
 inputs_chem
-
 % Size distribution
-%  (Comment out now because the DSC system treats one flat surface)
-% inputs_aero
+inputs_size_dist_modi
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    

@@ -42,9 +42,11 @@ sigma1 = [0.05] .* ones(1,nspec); %
 dHvap = dhvap_in .* ones(1,nspec) .* 1000;
 
 % Mass and thermal accommodation coefficients of the surrogate species
-% alpha_m = [0.05 ] .* ones(1,nspec);
-alpha_m = alpha_in .* ones(1,nspec);
+alpha_m = [0.05 ] .* ones(1,nspec);
 alpha_t = [1.0 ] .* ones(1,nspec);
 
 % Initial mass fractions of the species in the aerosol
-% X_i =   [0.382402580175911   0.262986339613507   0.238029910906473   0.102883340951026   0.012028746283725   0.001326109994375];
+X_i = 1./nspec .* ones(1,nspec);
+
+
+
