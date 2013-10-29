@@ -45,8 +45,42 @@ dHvap = dhvap_in .* ones(1,nspec) .* 1000;
 alpha_m = [0.05 ] .* ones(1,nspec);
 alpha_t = [1.0 ] .* ones(1,nspec);
 
+
 % Initial mass fractions of the species in the aerosol
-X_i = 1./nspec .* ones(1,nspec);
+X_i = 1./nspec .* ones(1,nspec); %Assume equi-mass
+
+% Initial mole fractions of the species in the aerosol
+n_i_apu(1:nspec) = X_i./MW;
+n_i_tot_apu = sum(X_i./MW);
+Xm_i(1:nspec) = n_i_apu./n_i_tot_apu;
+
+% Initial density of the aerosol
+rhol_i = sum(X_i.*rho); % Mass-weighted average
+
+% Initial surface tension of the aerosol
+sigmal_i = sum(Xm_i.*sigma1); % Mole-weighted average
+
+%Calculate Initial Mass concentration
+liq_vol = DAC.mass ./ rhol_i; %m3
+tot_vol = liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
+DSC.mass_conc = DAC.mass ./ tot_vol; %Total mass concentration (kg/m3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

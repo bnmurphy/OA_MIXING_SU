@@ -23,7 +23,6 @@ inputs_chem
 % Size distribution
 %  (Comment out now because the DSC system treats one flat surface)
 % inputs_aero
-nbins = 1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %    Getting the composition of the aerosol and vapor mixture             %
@@ -38,13 +37,13 @@ for i = 1:nspec
     % Calculate Kelvin effect
     %Ke_i(1:nbins+1,i) = exp(2.0.*MW(i).*sigmal_i./R./T_i./rho(i)./rp_i);
     %  No Kelvin effect for DSC -> flat surface
-    Ke_i(1:nbins+1,i) = 1.0;
+    Ke_i(i) = 1.0;
     
     % Mole fraction based equilibrium pressures
     %peq_i(1:nbins+1,i) = Xm_i(i).*psat_i(i).*Ke_i(1:nbins+1,i);
     
     % Mass fraction based equilibrium pressures
-    peq_i(1:nbins+1,i) = X_i(i).*psat_i(i).*Ke_i(1:nbins+1,i);
+    peq_i(i) = X_i(i).*psat_i(i).*Ke_i(i);
 end
 
 % Initial partial pressures of the species, assuming aerosol initially in
@@ -52,8 +51,7 @@ end
 pv_i(1:nspec) = peq_i(end,1:nspec);
 
 % Initial particle mass
-% mp_i(1:nbins+1,1) = rhol_i.*4.0*pi.*rp_i.^3.0./3.0;
-mp_i(1:nbins+1,1) = DSC.mass_conc(1); %kg/m3
+mp_i(1:nspec) = X_i .* DSC.mass_conc(1); %kg/m3
 
 
     
@@ -72,22 +70,12 @@ pv_a = pv_i;  %Initial Partial pressure at equilibrium
 % Vapor mass concentrations (kg/m3), initial
 cgas(1:nspec) = pv_i.*MW./R./T_i;
 
-
-% % Total particle mass concentration (kg/m3)
-% c_aer_tot = c_aer_tot_i;
-% % Particle mass concentrations (kg/m3)
-% c_aer_dist(1:nbins+1,1) = c_aer_dist_i;
-% % Particle number concentration (1/m3)
-% n_tot = n_tot_i;
-% % Particle number concentrations in each bin (1/m3)
-% n_dist(1:nbins+1,1) = n_dist_i;
-
 % Diffusion coefficient (m2/s)
 D(1:nspec) = Dn.*(T_i./T_ref).^mu1;
 
-% Particle mass (kg) and size (m)
-mp(1:nbins+1,1) = mp_i;
-% rp(1:nbins+1,1) = rp_i;
+% Bulk mass concentration (kg/m3)
+Bc = mp_i;
+
 
 % Total concentrations of the species 
 % ctot(1:nspec) = cgas + X_i.*c_aer_dist(end);
@@ -98,29 +86,18 @@ c_ave(1:nspec) = sqrt(8.*R.*T_i./MW./pi);
 % Mean free path of the gas molecules:
 lambda(1:nspec) = 3.*D./c_ave;
 
-% for i = 1:nspec
-%     % Masses of each species in the individual particles (kg)
-%     Pc(1:nbins+1,i) = X_i(i).*mp;
-%     % Knudsen number:
-%     Kn(1:nbins+1,i) = lambda(i)./rp_i;
-%     % Fuchs and Sutugin transition regime correction
-%     beta(1:nbins+1,i) = (1.0 + Kn(1:nbins+1,i))./...
-%         (1.0 + (4./alpha_m(i)./3 + 0.377).*Kn(1:nbins+1,i)...
-%         + 4.*Kn(1:nbins+1,i).^2./alpha_m(i)./3);
-% end
 
 % Gas phase concentrations kg/m3 for the size distribution case and for the
 % monodisperse case
-Gc(1:2,1:nspec) = [cgas; cgas];
+Gc(1:nspec) = cgas;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     Calculating the time-dependent evaporation                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-input(1:nbins+1,1:nspec) = Pc; % Masses of each species in each particle (kg)
-
-input(nbins+2:nbins+3,1:nspec) = Gc; % Gas phase concentrations (kg/m3)
+input = [Bc, Gc];   % Masses of each species in each particle (kg)
+                    % Gas phase concentrations (kg/m3)
 
 time = DSC.time;
 dt = mean(diff(time));
