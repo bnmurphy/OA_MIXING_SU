@@ -71,7 +71,7 @@ cgas(1:nspec) = pv_i.*MW./R./T_i;
 % Diffusion coefficient (m2/s)
 D(1:nspec) = Dn.*(T_i./T_ref).^mu1;
 
-% Bulk mass concentration (kg/m3)
+% Bulk mass concentration (kg)
 Bc = mp_i;
 
 
@@ -97,20 +97,23 @@ Gc(1:nspec) = cgas;
 input = [T_i, Bc, Gc]'; % T, Temperature, K  
                         % Bc, Masses of each species bulk (kg)
                         % Gc, Gas phase concentrations (kg/m3)
-time = linspace(DSC.time(1), DSC.time(end), 10);
+time = linspace(DSC.time(1), DSC.time(end), 1000);
 dt = mean(diff(time));
 
 % Solving the mass fluxes 
 options = odeset('RelTol',1E-6,'AbsTol',1E-19);    
 [tout, output] = ode45(@fluxes_bulk, time, input,  options, dt,nspec,...
     Cp_liq, Cp_vap,...
-    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m, DSC, tot_vol);
+    pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m, DSC);
 
-T_out = output(:,1)
-Bc_out = output(:,2:nspec+1)
-Gc_out = output(:,nspec+2: 2*nspec+1)
+T_out = output(1:10,1)-273.15   %deg C
+Bc_out = output(1:10,2:nspec+1) .* 1e9 %kg -> ug
+Gc_out = output(1:10,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
 
 
+T_out = output(end-10:end,1)-273.15   %deg C
+Bc_out = output(end-10:end,2:nspec+1) .* 1e9 %kg -> ug
+Gc_out = output(end-10:end,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
 
 
 

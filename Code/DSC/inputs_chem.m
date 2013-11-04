@@ -68,8 +68,8 @@ dHvap = [141.9,...
          119.0] .* 1000;
 
 % Heat Capacity of Vapor and Liquid Phases
-Cp_liq = 140 .* ones(1,nspec) .* 1000;
-Cp_vap = 120 .* ones(1,nspec) .* 1000;
+Cp_liq = 140 .* ones(1,nspec); %J mol-1 K-1
+Cp_vap = 120 .* ones(1,nspec); %J mol-1 K-1
 
 % Mass and thermal accommodation coefficients of the surrogate species
 alpha_m = [0.05 ] .* ones(1,nspec);
@@ -91,9 +91,11 @@ rhol_i = sum(X_i.*rho); % Mass-weighted average
 sigmal_i = sum(Xm_i.*sigma1); % Mole-weighted average
 
 %Calculate Initial Mass concentration
-liq_vol = DSC.mass ./ rhol_i; %m3
-tot_vol = liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
-DSC.mass_conc = DSC.mass ./ tot_vol; %Total mass concentration (kg/m3)
+DSC.liq_vol = DSC.mass ./ rhol_i; %m3
+DSC.tot_vol = DSC.liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
+DSC.vap_vol = DSC.tot_vol - DSC.liq_vol; %Vapor volume
+DSC.mass_conc = DSC.mass ./ DSC.tot_vol; %Total mass concentration (kg/m3)
+DSC.area = tot_vol .^ 2/3;  %m2
 
 
 
