@@ -12,6 +12,11 @@
 close all
 % clear all
 
+%File structure
+run_name = 'Cappa_OrganicMix_002';
+DSC_Data_Folder = 'DSC_DATA/';
+plotDir = ['../../Figs/DSC/' run_name '/'];
+
 % Loading the inputs:
 % DSC properties and Experimental Data
 inputs_DSC
@@ -31,17 +36,12 @@ inputs_chem
 % Saturation pressures at initial temperature [Pa]
 psat_i(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T_i)./R);
 
-for i = 1:nspec
-    % Calculate Kelvin effect
-    %Ke_i(1:nbins+1,i) = exp(2.0.*MW(i).*sigmal_i./R./T_i./rho(i)./rp_i);
-    %  No Kelvin effect for DSC -> flat surface
-    Ke_i(i) = 1.0;
-    
+for i = 1:nspec    
     % Mole fraction based equilibrium pressures
     %peq_i(1:nbins+1,i) = Xm_i(i).*psat_i(i).*Ke_i(1:nbins+1,i);
     
     % Mass fraction based equilibrium pressures
-    peq_i(i) = X_i(i).*psat_i(i).*Ke_i(i);
+    peq_i(i) = X_i(i).*psat_i(i);
 end
 
 % Initial partial pressures of the species, assuming aerosol initially in
@@ -106,17 +106,35 @@ options = odeset('RelTol',1E-6,'AbsTol',1E-19);
     Cp_liq, Cp_vap,...
     pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m, DSC);
 
-T_out = output(1:10,1)-273.15   %deg C
-Bc_out = output(1:10,2:nspec+1) .* 1e9 %kg -> ug
-Gc_out = output(1:10,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
+% T_out = output(1:10,1)-273.15   %deg C
+% Bc_out = output(1:10,2:nspec+1) .* 1e9 %kg -> ug
+% Gc_out = output(1:10,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
+% T_out = output(end-10:end,1)-273.15   %deg C
+
+%Compute experimental values
+T_out = output(:,1) - 273.15;  %K -> deg C
+% Cp_sys1 = diffxy(time,T_out);  %dT/dt -> degC s-1
+
+Q = zeros(length(time),1);
+for itime = 1:length(time)
+   Q(itime) = -DSC.Q(find(DSC.time >= time(itime),1 ) ); 
+end
+% Cp_sys = Q ./ Cp_sys1 ./ DSC.mass;    % dE/dT -> J/(kg degC)
+
+Cp_sys = diffxy(T_out,Q) ./ DSC.mass;  %dE/dT -> J/(kg degC)
 
 
-T_out = output(end-10:end,1)-273.15   %deg C
-Bc_out = output(end-10:end,2:nspec+1) .* 1e9 %kg -> ug
-Gc_out = output(end-10:end,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     Plot output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%Plot Temperature
+plot_2D({DSC.time, time'}, {DSC.T-273.15, T_out},{1,0},'Time(s)','Temperature(deg C)',...
+    'Temperature Profile Comparison',[1,time(end)],[-50,150],...
+    plotDir,'DSC_Temp',{'Measured','Modeled'},1)
 
-
-
-
+%Plot System Heat Capacity
+plot_2D({DSC.time, time'}, {DSC.Cp./1000, Cp_sys./1000},{1,0},'Time(s)','Heat Capacity (J/(g degC)',...
+    'Heat Capacity Comparison',[1,time(end)],[0,6],...
+    plotDir,'DSC_Cp',{'Measured','Modeled'},1)
 

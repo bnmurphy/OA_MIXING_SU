@@ -20,7 +20,7 @@ p = 101325.0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Load Measurement Data (time, T, Q, Cp, Mass)
-load('DSC_DATA/CappaMix_02.mat')
+load([DSC_Data_Folder 'CappaMix_02.mat'])
 
 %Convert Measured Quantities
 DSC.time = meas.time .* 60;  %min -> s
