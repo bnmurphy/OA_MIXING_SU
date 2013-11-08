@@ -4,10 +4,10 @@ function flx0 = fluxes_bulk(t,input,dt,nspec,Cp_liq,Cp_vap,...
 R = 8.314472;
 t
 %Load Local Variables
-T = input(1);  %Kelvin
+T = input(1)  %Kelvin
 Bc = input(2:nspec+1)';  %Bulk concentration kg
 Gc = input(nspec+2:2*nspec+1)';   %Gas concentration kg m-3
-Q = DSC.Q(find(DSC.time >= t,1 ) );
+Qin = -DSC.Q(find(DSC.time >= t,1 ) );
 
 
 
@@ -42,14 +42,10 @@ if sum(Bc) > 1.0e-22;
     vp = Bc_tot ./ rhol;
     rp = (3.*vp./4./pi).^(1./3);
     
-    % Kelvin effect (nonexistent)
-%     Ke(1:nspec) = exp(2.0.*MW(1:nspec).*sigmal./R./T_TD./rhol./rp);
-    Ke(1:nspec) = 1.0;
-    
     % Equilibrium pressures, mole based
-    %peq(j,1:nspec) = Xm(j,1:nspec).*psat(1:nspec).*Ke(j,1:nspec);
+    %peq(j,1:nspec) = Xm(j,1:nspec).*psat(1:nspec);
     % Mass based! Remember to fix back!!
-    peq(1:nspec) = X(1:nspec).*psat(1:nspec).*Ke(1:nspec);
+    peq(1:nspec) = X(1:nspec).*psat(1:nspec);
     
 else
     mp = 0.0;
@@ -90,10 +86,10 @@ end
 g_flx(1:nspec) = -b_flx ./ DSC.tot_vol; %kg m-3 s-1
 
 %Energy Balance (Q is going out of the system)
-dT_latent = sum( b_flx(1:nspec) .* dHvap(1:nspec) ./ MW(i) ); %J s-1
-dT_Cpliq = sum( Bc(1:nspec) .* Cp_liq(1:nspec) ./ MW(i) ); %J s-1
-dT_Cpvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cp_vap(1:nspec));
-dTdt = ( -Q - dT_latent) / (dT_Cpliq + dT_Cpvap);  %J s-1
+dT_latent = sum( -b_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
+dT_Cpliq = sum( Bc(1:nspec) .* Cp_liq(1:nspec) ./ MW(1:nspec) ); %J K-1
+dT_Cpvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cp_vap(1:nspec)./ MW(1:nspec)); %J K-1
+dTdt = ( Qin - dT_latent) / (dT_Cpliq + dT_Cpvap)  %K s-1
 
 % Changing to column vector
 flx0 = [dTdt, b_flx, g_flx]';

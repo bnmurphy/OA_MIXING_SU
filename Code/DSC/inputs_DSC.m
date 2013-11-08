@@ -27,12 +27,12 @@ DSC.time = meas.time .* 60;  %min -> s
 DSC.units.time = 'sec';
 DSC.T = meas.T + 273.15; %deg C -> K
 DSC.units.T = 'K';
-DSC.Q = meas.Q .* 1000;  %W/g -> W/kg
-DSC.units.Q = 'W/kg';
 DSC.Cp = meas.Cp .* 1000; %J/(g deg C) -> J/(kg K) 
 DSC.units.Cp = 'J/(kg K)';
 DSC.mass = meas.mass ./ 1e6; %mg -> kg
 DSC.units.mass = 'kg';
+DSC.Q = meas.Q .* 1000 .* DSC.mass;  %W/g -> W/kg -> W=J s-1
+DSC.units.Q = 'J/s';
 
 %Load initial Temperature
 T_i = DSC.T(1);
