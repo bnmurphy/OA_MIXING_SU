@@ -2,12 +2,11 @@ function flx0 = fluxes_bulk(t,input,dt,nspec,Cp_liq,Cp_vap,...
     pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,press,alpha_m,DSC)
     
 R = 8.314472;
-t
 %Load Local Variables
-T = input(1)  %Kelvin
+T = input(1);  %Kelvin
 Bc = input(2:nspec+1)';  %Bulk concentration kg
 Gc = input(nspec+2:2*nspec+1)';   %Gas concentration kg m-3
-Qin = -DSC.Q(find(DSC.time >= t,1 ) );
+Qin = DSC.Q(find(DSC.time >= t,1 ) );  %J/s
 
 
 
@@ -89,7 +88,11 @@ g_flx(1:nspec) = -b_flx ./ DSC.tot_vol; %kg m-3 s-1
 dT_latent = sum( -b_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
 dT_Cpliq = sum( Bc(1:nspec) .* Cp_liq(1:nspec) ./ MW(1:nspec) ); %J K-1
 dT_Cpvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cp_vap(1:nspec)./ MW(1:nspec)); %J K-1
-dTdt = ( Qin - dT_latent) / (dT_Cpliq + dT_Cpvap)  %K s-1
+dTdt = ( Qin - dT_latent) / (dT_Cpliq + dT_Cpvap);  %K s-1
+
+if dTdt ~= dTdt
+    pause
+end
 
 % Changing to column vector
 flx0 = [dTdt, b_flx, g_flx]';

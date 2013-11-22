@@ -8,7 +8,21 @@
 R = 8.314472;
 
 % Number of species
-nspec = 9;
+nspec = 10;
+
+%Species in Mixture
+% Malonic Acid
+% Succinic Acid
+% Glutaric Acid
+% Adipic Acid
+% Pimelic Acid
+% Suberic Acid
+% Azelaic Acid
+% Sebacic Acid
+% Dodecanoic Acid
+% Water
+Xm_water = DSC.H2O_molfrac; %Mole fraction of water
+iwater = 10;    %Index for water
 
 % Molar masses of the compounds [kg/mol]
 MW = [104.06,...
@@ -19,7 +33,8 @@ MW = [104.06,...
       174,...
       188,...
       202,...
-      230] ./ 1000;
+      230,...
+      18] ./ 1000;
 
 % Volatilities of the surrogate compounds at T_ref (K). The volatilities can be
 % given in either vapor pressures or saturation concentrations. 
@@ -33,7 +48,8 @@ pstar = [6.61e-9,...
          3.15e-10,...
          1.813e-10,...
          1.049e-10,...
-         1.718e-9] .* 101325;
+         1.718e-9,...
+         0.023024] .* 101325;
 % Saturation concentration in ug/m3
 cstar = pstar.*MW.*1e9./R./T_ref;
 
@@ -51,7 +67,8 @@ rho = [1.619,...
        1.272,...
        1.0287,...
        1.209,...
-       0.88] .* 1000;
+       0.88,...
+       1] .* 1000;
 
 % Surface tensions of the surrogate compounds [N/m]
 sigma1 = [0.05] .* ones(1,nspec); % 
@@ -65,24 +82,28 @@ dHvap = [141.9,...
          130.0,...
          146.0,...
          140.0,...
-         119.0] .* 1000;
+         119.0,...
+         40.14] .* 1000;
 
 % Heat Capacity of Vapor and Liquid Phases
-Cp_liq = linspace(330,450,nspec); %J mol-1 K-1
-Cp_vap = 140 .* ones(1,nspec); %J mol-1 K-1
+Cp_liq = linspace(330,450,nspec-1); %J mol-1 K-1
+Cp_liq = [Cp_liq, 75.3]; %Concatenate Liquid Water
+Cp_vap = 140 .* ones(1,nspec-1); %J mol-1 K-1
+Cp_vap = [Cp_vap, 33.6]; %Concatenate Liquid Water
 
 % Mass and thermal accommodation coefficients of the surrogate species
 alpha_m = [0.05 ] .* ones(1,nspec);
 alpha_t = [1.0 ] .* ones(1,nspec);
 
 
-% Initial mass fractions of the species in the aerosol
-X_i = 1./nspec .* ones(1,nspec); %Assume equi-mass
+% Initial mole fractions of the species in the condensed phase
+Xm_i(iwater) = Xm_water;
+Xm_i(1:nspec-1) = ones(1,nspec-1) ./(nspec-1) .* (1-Xm_water); %Assume equi-molar
 
-% Initial mole fractions of the species in the aerosol
-n_i_apu(1:nspec) = X_i./MW;
-n_i_tot_apu = sum(X_i./MW);
-Xm_i(1:nspec) = n_i_apu./n_i_tot_apu;
+% Initial mass fractions of the species in the condensed phase
+m_i_apu(1:nspec) = Xm_i.*MW;
+m_i_tot_apu = sum( m_i_apu );
+X_i(1:nspec) = m_i_apu./m_i_tot_apu;
 
 % Initial density of the aerosol
 rhol_i = sum(X_i.*rho); % Mass-weighted average

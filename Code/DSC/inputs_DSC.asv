@@ -33,12 +33,9 @@ DSC.mass = meas.mass ./ 1e6; %mg -> kg
 DSC.units.mass = 'kg';
 
 %Confirm that Q is Defined the right way (positive for T increase)
-switch DSC.T(end) > DSC.T(1)  
-    case 1  %T increases throughout the experiment
-        if sum(meas.Q) < 0, meas.Q = meas.Q .* -1; end
-    case 0  %T decreases throughout the experiment
-        if sum(meas.Q) > 0, meas.Q = meas.Q .* -1; end
-end
+switch DSC.T(end) > DSC.T(1)  %T increases throughout the experiment
+    case 1
+        
 
 DSC.Q = meas.Q .* 1000 .* DSC.mass;  %W/g -> W/kg -> W=J s-1
 DSC.units.Q = 'J/s';

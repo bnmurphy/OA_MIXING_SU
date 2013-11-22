@@ -7,15 +7,19 @@
 % Although the DSC experiment focuses on bulk fluid, try to keep particle
 % functionality throughout the code, so that it can be extended to look at
 % particle issues afterward
+%
+% Experiment Names:
+%     CappaMix_02.mat
+%     CappaMix_H2O_075.mat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all
 % clear all
 
 %File structure
-run_name = 'Cappa_OrganicMix_002';
+exp_name = 'CappaMix_02.mat';
 DSC_Data_Folder = 'DSC_DATA/';
-plotDir = ['../../Figs/DSC/' run_name '/'];
+plotDir = ['../../Figs/DSC/' exp_name '/'];
 
 % Loading the inputs:
 % DSC properties and Experimental Data
@@ -97,7 +101,7 @@ Gc(1:nspec) = cgas;
 input = [T_i, Bc, Gc]'; % T, Temperature, K  
                         % Bc, Masses of each species bulk (kg)
                         % Gc, Gas phase concentrations (kg/m3)
-time = linspace(DSC.time(1), DSC.time(end), 1000);
+time = linspace(DSC.time(1), DSC.time(end), 100);
 dt = mean(diff(time));
 
 % Solving the mass fluxes 
@@ -112,17 +116,22 @@ options = odeset('RelTol',1E-6,'AbsTol',1E-19);
 % T_out = output(end-10:end,1)-273.15   %deg C
 
 %Compute experimental values
-T_out = output(:,1) - 273.15;  %K -> deg C
-% Cp_sys1 = diffxy(time,T_out);  %dT/dt -> degC s-1
-
+T_out = output(:,1); %K
 Q = zeros(length(time),1);
 for itime = 1:length(time)
-   Q(itime) = -DSC.Q(find(DSC.time >= time(itime),1 ) ); 
+   Q(itime) = mean(DSC.Q(find(DSC.time < time(itime),1,'last' ): ...
+                          find(DSC.time > time(itime),1,'first')  ) );  %J/s
+   if isnan(Q(itime))
+       if time(itime) <= DSC.time(1), Q(itime) = DSC.Q(1); end
+       if time(itime) >= DSC.time(end), Q(itime) = DSC.Q(end); end
+   end
 end
-% Cp_sys = Q ./ Cp_sys1 ./ DSC.mass;    % dE/dT -> J/(kg degC)
 
-Cp_sys = diffxy(T_out,Q) ./ DSC.mass;  %dE/dT -> J/(kg degC)
+dT = diffxy(time, T_out);
+Cp_sys = Q ./ dT; %dE/dT -> J/degC
+Cp_sys = Cp_sys ./ DSC.mass;  %dE/dT -> J/(kg degC)
 
+T_out = output(:,1) - 273.15;  %K -> deg C
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     Plot output
@@ -137,4 +146,8 @@ plot_2D({DSC.time, time'}, {DSC.T-273.15, T_out},{1,0},'Time(s)','Temperature(de
 plot_2D({DSC.time, time'}, {DSC.Cp./1000, Cp_sys./1000},{1,0},'Time(s)','Heat Capacity (J/(g degC)',...
     'Heat Capacity Comparison',[1,time(end)],[0,6],...
     plotDir,'DSC_Cp',{'Measured','Modeled'},1)
+
+
+
+
 
