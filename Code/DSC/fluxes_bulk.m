@@ -1,6 +1,8 @@
 function flx0 = fluxes_bulk(t,input,dt,nspec,Cp_liq,Cp_vap,...
     pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,press,alpha_m,DSC)
-    
+
+if mod(t,100) == 0, t, end
+
 R = 8.314472;
 %Load Local Variables
 T = input(1);  %Kelvin
@@ -13,7 +15,7 @@ Qin = DSC.Q(find(DSC.time >= t,1 ) );  %J/s
 Bc( Bc <= 0.0 | ~isreal(Bc) ) = 0.0;
 Gc( Gc <= 0.0 | ~isreal(Gc) ) = 0.0;
 
-% Equilibrium pressures at the DSC temperature
+% Equilibrium pressures at the DSC temperature (should be Pa)
 psat(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T)./R);
 csat(1:nspec) = MW.*psat./R./T;
 
@@ -54,25 +56,28 @@ else
     beeta(1:nspec) = zeros(1,nspec);
 end
 
-% Pressure at the bulk surface
+% Pressure at the bulk surface (Pa)
 pv_a(1:nspec) = peq;
 
-% Partial pressures far away from the bulk
+% Partial pressures far away from the bulk (Pa)
 pv_i(1:nspec) = Gc(1:nspec).*R.*T./MW(1:nspec);
 
 % Mass flux of each compound to the particles   kg s-1
+b_flx = zeros(1,nspec);
 for i = 1:nspec
     ln_fact = (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press);
     if Bc_tot > 0.0 
         
-        if ln_fact > 0.0  %Stefan (Convective) Flow + Diffusive Flow
+        if ln_fact > 0.0  %Evaporation
+                          %Stefan (Convective) Flow + Diffusive Flow
             
-            b_flx(i) = DSC.area.*press.*D(i).*MW(i).* ...
+            b_flx(i) = DSC.L.*press.*D(i).*MW(i).* ...
                 log((1.0 - pv_a(i)./press)./(1.0 - pv_i(1,i)./press))./R./T;
             
-        else        %Just Diffusive flow
+        else        %Condensation
+                    %Just Diffusive flow
             
-            b_flx(i) = DSC.area.*D(i).*MW(i).* ...
+            b_flx(i) = DSC.L.*D(i).*MW(i).* ...
                 (pv_i(i)-pv_a(i))./R./T;
         end
         
@@ -84,7 +89,11 @@ end
 % Mass flux of each compound to the gas phase
 g_flx(1:nspec) = -b_flx ./ DSC.tot_vol; %kg m-3 s-1
 
-%Energy Balance (Q is going out of the system)
+if T > 373
+    t;
+end
+
+%Energy Balance (Q is going into the system)
 dT_latent = sum( -b_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
 dT_Cpliq = sum( Bc(1:nspec) .* Cp_liq(1:nspec) ./ MW(1:nspec) ); %J K-1
 dT_Cpvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cp_vap(1:nspec)./ MW(1:nspec)); %J K-1

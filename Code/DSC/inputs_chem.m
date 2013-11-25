@@ -11,16 +11,17 @@ R = 8.314472;
 nspec = 10;
 
 %Species in Mixture
-% Malonic Acid
-% Succinic Acid
-% Glutaric Acid
-% Adipic Acid
-% Pimelic Acid
-% Suberic Acid
-% Azelaic Acid
-% Sebacic Acid
-% Dodecanoic Acid
-% Water
+spec_name = {'Malonic Acid',...
+             'Succinic Acid',...
+             'Glutaric Acid',...
+             'Adipic Acid',...
+             'Pimelic Acid',...
+             'Suberic Acid',...
+             'Azelaic Acid',...
+             'Sebacic Acid',...
+             'Dodecanoic Acid',...
+             'Water'};
+
 Xm_water = DSC.H2O_molfrac; %Mole fraction of water
 iwater = 10;    %Index for water
 
@@ -40,6 +41,7 @@ MW = [104.06,...
 % given in either vapor pressures or saturation concentrations. 
 T_ref = 298.15;
 % % Vapor pressure in Pascals
+% Dodecanoic acid pstar = 1.718e-9
 pstar = [6.61e-9,...
          3.103e-9,...
          1.725e-9,...
@@ -68,7 +70,7 @@ rho = [1.619,...
        1.0287,...
        1.209,...
        0.88,...
-       1] .* 1000;
+       1.0] .* 1000;
 
 % Surface tensions of the surrogate compounds [N/m]
 sigma1 = [0.05] .* ones(1,nspec); % 
@@ -86,8 +88,8 @@ dHvap = [141.9,...
          40.14] .* 1000;
 
 % Heat Capacity of Vapor and Liquid Phases
-Cp_liq = linspace(330,450,nspec-1); %J mol-1 K-1
-Cp_liq = [Cp_liq, 75.3]; %Concatenate Liquid Water
+Cp_liq = linspace(20,30,nspec-1); %J mol-1 K-1
+Cp_liq = [Cp_liq, 30];  %75.3]; %Concatenate Liquid Water
 Cp_vap = 140 .* ones(1,nspec-1); %J mol-1 K-1
 Cp_vap = [Cp_vap, 33.6]; %Concatenate Liquid Water
 
@@ -114,9 +116,9 @@ sigmal_i = sum(Xm_i.*sigma1); % Mole-weighted average
 %Calculate Initial Mass concentration
 DSC.liq_vol = DSC.mass ./ rhol_i; %m3
 DSC.tot_vol = DSC.liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
-DSC.vap_vol = DSC.tot_vol - DSC.liq_vol; %Vapor volume
+DSC.vap_vol = DSC.tot_vol - DSC.liq_vol; %Vapor volume m3
 DSC.mass_conc = DSC.mass ./ DSC.tot_vol; %Total mass concentration (kg/m3)
-DSC.area = DSC.tot_vol .^ 2/3;  %m2
+DSC.L = DSC.vap_vol .^ (1/3);  %m2
 
 
 

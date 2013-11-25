@@ -9,15 +9,25 @@
 % particle issues afterward
 %
 % Experiment Names:
-%     CappaMix_02.mat
-%     CappaMix_H2O_075.mat
+%     CappaMix_01
+%     CappaMix_02
+%     CappaMix_03_H2O_025
+%     CappaMix_04_H2O_025
+%     CappaMix_06_H2O_050
+%     CappaMix_07_H2O_075
+%     CappaMix_08_H2O_075
+%     CappaMix_09_H2O_090
+%     CappaMix_10_H2O_090
+%     CappaMix_11_H2O_095
+%     CappaMix_12_H2O_095
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all
+clear variables
 % clear all
 
 %File structure
-exp_name = 'CappaMix_02.mat';
+exp_name = 'CappaMix_12_H2O_095';
 DSC_Data_Folder = 'DSC_DATA/';
 plotDir = ['../../Figs/DSC/' exp_name '/'];
 
@@ -101,22 +111,23 @@ Gc(1:nspec) = cgas;
 input = [T_i, Bc, Gc]'; % T, Temperature, K  
                         % Bc, Masses of each species bulk (kg)
                         % Gc, Gas phase concentrations (kg/m3)
-time = linspace(DSC.time(1), DSC.time(end), 100);
+time = linspace(DSC.time(1), DSC.time(end), 1000);
 dt = mean(diff(time));
 
 % Solving the mass fluxes 
-options = odeset('RelTol',1E-6,'AbsTol',1E-19);    
+options = odeset('RelTol',1E-6,'AbsTol',1E-10);    
 [tout, output] = ode45(@fluxes_bulk, time, input,  options, dt,nspec,...
     Cp_liq, Cp_vap,...
     pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m, DSC);
 
-% T_out = output(1:10,1)-273.15   %deg C
-% Bc_out = output(1:10,2:nspec+1) .* 1e9 %kg -> ug
-% Gc_out = output(1:10,nspec+2: 2*nspec+1) .* 1e9  %kg m-3 -> ug m-3
-% T_out = output(end-10:end,1)-273.15   %deg C
 
 %Compute experimental values
+%First get Temperature from model
 T_out = output(:,1); %K
+%Find change in Temperature with time
+dT = diffxy(time, T_out);  %dT/dt -> degC/s
+
+%Retrieve Heat Flow from Experiment
 Q = zeros(length(time),1);
 for itime = 1:length(time)
    Q(itime) = mean(DSC.Q(find(DSC.time < time(itime),1,'last' ): ...
@@ -127,9 +138,13 @@ for itime = 1:length(time)
    end
 end
 
-dT = diffxy(time, T_out);
+%Divide Heat Flow by Temperature Temporal Evolution
+%to get heat capacity
 Cp_sys = Q ./ dT; %dE/dT -> J/degC
+
+%Normalize with experimental mass to get specific heat capacity
 Cp_sys = Cp_sys ./ DSC.mass;  %dE/dT -> J/(kg degC)
+
 
 T_out = output(:,1) - 273.15;  %K -> deg C
 
@@ -147,6 +162,28 @@ plot_2D({DSC.time, time'}, {DSC.Cp./1000, Cp_sys./1000},{1,0},'Time(s)','Heat Ca
     'Heat Capacity Comparison',[1,time(end)],[0,6],...
     plotDir,'DSC_Cp',{'Measured','Modeled'},1)
 
+%Plot Chemical Composition of Both Phases
+Bc_out = output(1:length(time),2:nspec+1) .* 1e6; %kg -> mg
+Y_limit = ceil(meas.mass/10)*10;
+ylog = 0;  %Linear Y-axis
+plot_area(time', Bc_out,'Time(s)','Mass (mg)',...
+    'Bulk Chemical Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
+    plotDir,'DSC_Cond_Chem',{},1)
+
+Gc_out = output(1:length(time),nspec+2: 2*nspec+1) .* 1e6 .* DSC.vap_vol; %kg/m3 -> ug/m3
+Y_limit = max(sum(Gc_out,2))*2;
+ylog = 1; %Log Y-axis
+plot_area(time', Gc_out,'Time(s)','Mass (mg)',...
+    'Gas Chemical Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
+    plotDir,'DSC_Gas_Chem',{},1)
+
+% %Add Temperature Axis
+% hold on 
+% axT = axes;
+% h = plot(time',T_out,'linewidth',2);
+% set(axT,'ylim',[-50,150],'xlim',[1,time(end)]);
+
+b = ou2;
 
 
 
