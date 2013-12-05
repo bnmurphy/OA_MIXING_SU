@@ -27,7 +27,7 @@ clear variables
 % clear all
 
 %File structure
-exp_name = 'CappaMix_11_H2O_095';
+exp_name = 'CappaMix_02';
 DSC_Data_Folder = 'DSC_DATA/';
 plotDir = ['../../Figs/DSC/' exp_name '/'];
 
@@ -47,9 +47,7 @@ inputs_chem
 %    mixed.                                                               %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Calculate the equilibrium distribution of each species before the
-%Temperature ramp begins
-pv_i = find_equilibrium(T_ref, T_i, DSC, MW, dHvap, pstar, Xm_i, X_i);
+pv_i = find_equilibrium(T_ref, T_i, DSC, dHvap, pstar, Xm_i);
 
 % Vapor mass concentrations (kg/m3) at initial Temperature and Atm Pressure
 cgas(1:nspec) = pv_i.*MW./R./T_i;
