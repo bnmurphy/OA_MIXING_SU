@@ -23,7 +23,10 @@ csat(1:nspec) = psat./R./T_i; %Satn Concentration [mol/m3]
 %Total Concentration in the cell [mol species / m3 DSC]
 ctot_i(1:nspec) = X_i .* DSC.mass ./ MW ./ DSC.tot_vol;
 
-%Use Bisection to find Coa and psi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%Vapor-Liquid Equilibrium
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Use Bisection to find sum(ctot_i) and cliq_i/ctot_i
 x1 = 0;
 x2 = sum(ctot_i); %Upper Bound on Coa
 i = 0;

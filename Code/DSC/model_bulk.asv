@@ -27,9 +27,11 @@ clear variables
 % clear all
 
 %File structure
-exp_name = 'CappaMix_02';
+exp_name = 'CappaMix_12_H2O_095';
 DSC_Data_Folder = 'DSC_DATA/';
 plotDir = ['../../Figs/DSC/' exp_name '/'];
+addpath ../AIOMFAC;
+
 
 % Loading the inputs:
 % DSC properties and Experimental Data
@@ -47,7 +49,9 @@ inputs_chem
 %    mixed.                                                               %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-pv_i = find_equilibrium(T_ref, T_i, DSC, dHvap, pstar, Xm_i);
+%Calculate the equilibrium distribution of each species before the
+%Temperature ramp begins
+pv_i = find_equilibrium(T_ref, T_i, DSC, MW, dHvap, pstar, Xm_i, X_i);
 
 % Vapor mass concentrations (kg/m3) at initial Temperature and Atm Pressure
 cgas(1:nspec) = pv_i.*MW./R./T_i;
@@ -72,19 +76,22 @@ lambda(1:nspec) = 3.*D_air./c_ave;
 % Load Masses for All Phases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Gas phase concentrations kg/m3
-Gc(1:nspec) = cgas;
-% Organic Luquid total mass kg
+% Gas phase concentrations [kg/m3]
+Gc(1:nspec) = cgas(1:nspec);
+% Organic Luquid total mass [kg]
 OLc(1:nspec) = corg_liq(1:nspec);
+% Solid Phase total mass [kg]
+Sc(1:nspec) = 2.5e-6;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     Calculating the time-dependent evaporation                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-input = [T_i, OLc, Gc]'; % T, Temperature, K  
-                        % Bc, Masses of each species bulk (kg)
-                        % Gc, Gas phase concentrations (kg/m3)
+input = [T_i, Sc, OLc, Gc]'; % T, Temperature, K  
+                             % Sc,  Mass of solid phase species (kg)
+                             % OLc, Masses of each species bulk (kg)
+                             % Gc, Gas phase concentrations (kg/m3)
 time = linspace(DSC.time(1), DSC.time(end), 1000);
 % time = linspace(DSC.time(1), 2930, 1000);
 dt = mean(diff(time));
@@ -93,7 +100,8 @@ dt = mean(diff(time));
 options = odeset('RelTol',1E-6,'AbsTol',1E-16);    
 [tout, output] = ode45(@fluxes_bulk, time, input,  options, dt,nspec,...
     Cp_liq, Cp_vap,...
-    pstar,dHvap,T_ref,MW,sigma1,rhol,Dn_air,mu1,alpha_m, DSC);
+    pstar,dHvap,T_ref,MW,sigma1,rhol,Dn_air,mu1,alpha_m, DSC, molec_group_flag,...
+    molec_group_stoich);
 
 
 %Compute experimental values
@@ -118,7 +126,7 @@ end
 Cp_sys = Q ./ dT; %dE/dT -> J/degC
 
 %Normalize with experimental mass to get specific heat capacity
-OLc_out = output(1:length(time),2:nspec+1); %kg
+OLc_out = output(1:length(time),nspec+2: 2*nspec+1); %kg
 Cp_sys = Cp_sys ./ sum(OLc_out,2);  %dE/dT -> J/(kg degC)
 
 T_out = output(:,1) - 273.15;  %K -> deg C
@@ -139,14 +147,22 @@ plot_2D({DSC.time, time'}, {DSC.Cp./1000, Cp_sys./1000},{1,0},'Time(s)','Heat Ca
     plotDir,'DSC_Cp',{'Measured','Modeled'},lylog,1)
 
 %Plot Chemical Composition of All Phases
+Sc_out = output(1:length(time),2:nspec+1) .* 1e6; %kg -> mg
+Y_limit = ceil(meas.mass/10)*10;
+ylog = 0;  %Linear Y-axis
+plot_area(time', Sc_out,'Time(s)','Solid Mass (mg)',...
+    'Solid Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
+    plotDir,'DSC_Solid_Chem',{},1)
+
+
 OLc_out = OLc_out .* 1e6; %kg -> mg
 Y_limit = ceil(meas.mass/10)*10;
 ylog = 0;  %Linear Y-axis
 plot_area(time', OLc_out,'Time(s)','Organic Liquid Mass (mg)',...
-    'Bulk Chemical Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
-    plotDir,'DSC_Cond_Chem',{},1)
+    'Liquid Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
+    plotDir,'DSC_Liquid_Chem',{},1)
 
-Gc_out = output(1:length(time),nspec+2: 2*nspec+1) .* 1e6 .* DSC.vap_vol; %kg/m3 -> ug/m3
+Gc_out = output(1:length(time),2*nspec+2: 3*nspec+1) .* 1e6 .* DSC.vap_vol; %kg/m3 -> mg
 Y_limit = max(sum(Gc_out,2))*2;
 ylog = 1; %Log Y-axis
 plot_area(time', Gc_out,'Time(s)','Mass (mg)',...
@@ -156,7 +172,8 @@ plot_area(time', Gc_out,'Time(s)','Mass (mg)',...
 %Recalculate extraneous parameters from ODE function
 for ii = 1:length(time)
     [~, p_h2o(ii,:)] = fluxes_bulk(time(ii),output(ii,:)',dt,nspec,Cp_liq,Cp_vap,...
-    pstar,dHvap,T_ref,MW,sigma1,rhol,Dn_air,mu1,alpha_m,DSC);
+    pstar,dHvap,T_ref,MW,sigma1,rhol,Dn_air,mu1,alpha_m,DSC, molec_group_flag,...
+    molec_group_stoich);
 end
 
 press = p_h2o(:,1);

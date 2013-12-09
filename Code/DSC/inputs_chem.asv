@@ -25,6 +25,25 @@ spec_name = {'Malonic Acid',...
 Xm_water = DSC.H2O_molfrac; %Mole fraction of water
 iwater = 10;    %Index for water
 
+%Specify Inputs for AIOMFAC - the activity coefficient model
+%molec_group_flag is an array identifying the chemical identity of each
+%funtional group present.
+molec_group_flag = [2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    2 43;,...
+                    
+
+
+
+
+
+
 % Molar masses of the compounds [kg/mol]
 MW = [104.06,...
       118.09,...
@@ -157,16 +176,15 @@ sigmal_i = sum(Xm_i.*sigma1); % Mole-weighted average
 
 %Calculate Initial DSC Properties Assuming STP
 DSC.liq_vol = sum(X_i.*DSC.mass ./ rhol); %m3 if all mass is liquid
-DSC.tot_vol = DSC.liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
+
 DSC.vap_vol = DSC.tot_vol - DSC.liq_vol; %Vapor volume m3
 DSC.mass_conc = DSC.mass ./ DSC.tot_vol; %Total mass concentration (kg/m3)
 DSC.L = DSC.vap_vol .^ (1/3);   %m - scaling for diffusion to the bulk
                                 %    surface through the vapor
 DSC.Area = DSC.L .^ 2; %m2
-DSC.moles_air = p .* DSC.vap_vol ./ R ./ T_ref;
+DSC.moles_air = p_ref .* DSC.vap_vol ./ R ./ T_ref; %[moles]
 DSC.h2o = DSC.mass .* X_i(iwater); %kg of total water
 
-P_i = DSC.
 
 
 

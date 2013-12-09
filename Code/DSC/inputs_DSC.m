@@ -15,7 +15,7 @@ Na = 6.0221415e23;
 % Total pressure [Pa]
 p_ref = 101325.0; 
 % Volume [m3]
-DSC.tot_vol = 78 .* 1.e-9;  %I think the DSC is about 78 mm3 
+DSC.tot_vol = 80 .* 1.e-9;  %I think the DSC is about 80 mm3 
 % DSC.tot_vol = DSC.liq_vol .* 10;  %Assume vapor has 10x the volume that the liquid does
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,6 +49,9 @@ DSC.H2O_molfrac = meas.H2O_molfrac; %Mole fraction of Water Present
 
 %Load initial Temperature
 T_i = DSC.T(1);
+
+
+DSC.mass = DSC.mass ./ 1;  %Reduce to particle amounts
 
 
 
