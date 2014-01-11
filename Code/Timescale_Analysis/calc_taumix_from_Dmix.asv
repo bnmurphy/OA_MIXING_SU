@@ -1,0 +1,17 @@
+function tau_mix = calc_taumix_from_Dmix(Dp, Dmix)
+%Calculate Mixing Timescale given Particle diameter and Diffusivity
+% tau = r^2/ (pi^2 * Dmix);
+
+pi = 3.1415;
+tau_mix = (Dp/2)^2 / (pi^2) / Dmix;
+
+end
+
+
+%tau_evap = R.*T.*rho1 .* rp.^2 ./ ...
+%    (Beta .* 4.*pi.* MW .* D_air .* peq)
+
+%X = tau_evap / tau_mix
+
+%X = R.*T.*rho1 .*                    .*  pi^2 .* Dmix ./
+%    (Beta .* 4.*pi.* MW .* D_air .* peq)
