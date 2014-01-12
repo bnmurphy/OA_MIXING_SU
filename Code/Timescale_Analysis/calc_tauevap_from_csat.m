@@ -23,7 +23,10 @@ Ke = exp(2.0.*MW.*sigma1./R./T./rho1./rp);  % Kelvin effect
 peq = psat .* Xm .* Ke;
 
 %Calculate Equilibrium Vapor Pressure
-tau_evap = R.*T.*rho1 .* rp.^2 ./ ...
-    (Beta .* 4.*pi.* MW .* D_air .* peq); %s
+% tau_evap = R.*T.*rho1 .* rp.^2 ./ ...
+%     (Beta .* 4.*pi.* MW .* D_air .* peq); %s
+tau_evap = R.*T ./ ...
+    (Beta .* 4.*pi.* MW .* D_air .* rp .* peq); %s
+
 
 end
