@@ -3,7 +3,7 @@ function tau_mix = calc_taumix_from_Dmix(Dp, Dmix)
 % tau = r^2/ (pi^2 * Dmix);
 
 pi = 3.1415;
-tau_mix = (Dp/2)^2 / (pi^2) / Dmix;
+tau_mix = (Dp./2).^2 ./ (pi.^2) ./ Dmix;
 
 end
 

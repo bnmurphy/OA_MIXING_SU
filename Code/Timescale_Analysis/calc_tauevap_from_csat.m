@@ -1,9 +1,9 @@
-function csat = calc_csat_from_tauevap(tau_evap, T, Dp, D_air, Beta, Xm, ...
+function tau_evap = calc_tauevap_from_csat(csat, T, Dp, D_air, Beta, Xm, ...
     MW, rho1, sigma1)
 %Calculates equilibrium saturation concentration given an evaporation
 %timescale
 %
-% tau_evap - evaporation timescale (s)
+% csat - Saturation concentration (ug m-3)
 % T - temperature (K)
 % Dp - particle diameter (m)
 % D_air - diffusivity in air (m^2/s)
@@ -13,18 +13,17 @@ function csat = calc_csat_from_tauevap(tau_evap, T, Dp, D_air, Beta, Xm, ...
 % rho - condensed-phase density (kg cm-3)
 
 R = 8.314;  %J mol-1 K-1
-rp = Dp./2; %particle radius
+rp = Dp ./ 2;  %particle radius
+
+%Saturation Pressure (Pa) at T
+psat = csat ./MW.*R.*T./1.0e9;  %Pa
+
+%Equilibrium Pressure (Pa) for Size rp
+Ke = exp(2.0.*MW.*sigma1./R./T./rho1./rp);  % Kelvin effect
+peq = psat .* Xm .* Ke;
 
 %Calculate Equilibrium Vapor Pressure
-peq = R.*T.*rho1 .* rp.^2 ./ ...
-    (Beta .* 4.*pi.* MW .* D_air .* tau_evap); %Pa
-
-Ke = exp(2.0.*MW.*sigma1./R./T./rho1./rp);  % Kelvin effect
-
-% Saturation Pressure (Pa)
-psat = peq ./ Xm ./ Ke;
-
-%Saturation Concentration (ug m-3) at T0
-csat = MW.*psat./R./T .* 1.0e9;
+tau_evap = R.*T.*rho1 .* rp.^2 ./ ...
+    (Beta .* 4.*pi.* MW .* D_air .* peq); %s
 
 end
