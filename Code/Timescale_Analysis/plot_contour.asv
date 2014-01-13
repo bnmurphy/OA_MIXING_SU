@@ -1,4 +1,4 @@
-function plot_contour(x, y, z, zlines, lzlog, xstr, ystr, tstr, tinterpreter,...
+function plot_contour(x, y, z, zlines, zlbl, xstr, ystr, tstr, tinterpreter,...
     xlims, ylims, xticks, yticks, xticklbl, yticklbl,...
     plotDir, plotName, legstr, lxlog, lylog, lsave)
 %This function makes a 2-D plot.
@@ -39,35 +39,25 @@ set(ax,'xlim',xlims,'ylim',ylims,'xtick',xticks,'ytick',yticks,...
     'fontname',sfont,'fontsize',axis_fsz,'fontweight',axis_style,...
     'position',[0.13 0.16, 0.775, 0.70]);
 
+
+
+%Label the Plot and Create Legend
+hlbl = clabel(cs,h,'labelspacing',144,'fontsize',axis_fsz,'fontname',sfont,...
+    'fontweight','bold','fontangle','oblique','edgecolor','k','rotation',0,...
+    'backgroundcolor',[1 1 1]); %,'units','normalized');
+
+
 if lxlog, set(ax,'xscale','log'); end
 if lylog, set(ax,'yscale','log'); end
 
-%Format Contour Labels
-hlbl = clabel(cs,h,'labelspacing',144,'fontsize',axis_fsz,'fontname',sfont,...
-    'fontweight','bold','fontangle','oblique','edgecolor','k','rotation',0,...
-    'backgroundcolor',[1 1 1]);
-if lzlog  %Make contour labels exponential
-    for ilbl = 1:length(hlbl)
-        temp_str = get(hlbl(ilbl),'string');
-        set(hlbl(ilbl),'string', ['10^{' temp_str '}']);
-    end
-end
-
-%Format Tick Labels
 [hx, hy] = format_ticks(gca, xticklbl, yticklbl, xticks, yticks,[],[],[]);
 
-%Format Axes Labels
 hxlbl = xlabel(xstr,'fontname',sfont,'fontsize',axis_lbl_fsz,'fontweight',axis_style,...
     'units','normalized');
 pos = get(hxlbl,'position');
-set(hxlbl,'position',[pos(1) -0.09 0]);
+set(hxlbl,'position',[pos(1) -0.1 0];
 
-hylbl = ylabel(ystr,'fontname',sfont,'fontsize',axis_lbl_fsz,'fontweight',axis_style,...
-    'units','normalized');
-pos = get(hylbl,'position');
-set(hylbl,'position',[-0.09 pos(2) 0]);
-
-%Format Title
+ylabel(ystr,'fontname',sfont,'fontsize',axis_lbl_fsz,'fontweight',axis_style)
 title(tstr,'fontname',sfont,'fontsize',title_fsz,'fontweight',title_style,...
     'interpreter',tinterpreter,'horizontalalignment','center','units','normalized',...
     'position',[0.5 1.04 0.0]);

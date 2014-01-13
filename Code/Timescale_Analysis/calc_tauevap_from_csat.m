@@ -13,6 +13,7 @@ function tau_evap = calc_tauevap_from_csat(csat, T, Dp, D_air, Beta, Xm, ...
 % rho - condensed-phase density (kg cm-3)
 
 R = 8.314;  %J mol-1 K-1
+k = 1.38e-23; %Boltzmann m2 kg s-2 K-1
 rp = Dp ./ 2;  %particle radius
 
 %Saturation Pressure (Pa) at T
@@ -25,8 +26,8 @@ peq = psat .* Xm .* Ke;
 %Calculate Equilibrium Vapor Pressure
 % tau_evap = R.*T.*rho1 .* rp.^2 ./ ...
 %     (Beta .* 4.*pi.* MW .* D_air .* peq); %s
-tau_evap = R.*T ./ ...
-    (Beta .* 4.*pi.* MW .* D_air .* rp .* peq); %s
+tau_evap = k.*T ./ ...
+    (Beta .* 4.*pi .* D_air .* rp .* peq); %s
 
 
 end

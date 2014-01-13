@@ -59,42 +59,45 @@ end
 
 % %Plot X as a function of Diffusivity and Volatility
 % for isize = 1:length(Dp)
-    % x = Dmix .* 100^2; %cm2 s-1
-    % xticks = 10.^[log10(Dmix_lo.*100^2):1:log10(Dmix_hi.*100^2)];
-    % y = Csat;  %ug m-3
-    % yticks = 10.^[-5:2:8];
-    % z = log10(Xi(:,:,isize));
-    % zVec = reshape(z,1,size(z,1)*size(z,2));
-    % zticks = [-5:3:20];
-    % zlbl = zticks;
-    % lxlog = 1;
-    % lylog = 1;
-    % lsave = 1;
-    % plot_contour(x, y, z, zticks, zlbl, 'Diffusivity (cm^2 s^{-1})', ...
-    %     'Saturation Concentration (\mu g m^{-3})', ...
-    %     ['X (= \tau_{evap}/\tau_{mix}) for particles of size ' num2str(Dp(isize)*1.0e6) ' \mum'],...
-    %     'tex', [x(1),x(end)], [y(1),y(end)], xticks, yticks, 'Figs/', ...
-    %     ['X_from_DiffVol_Dp' num2str(isize)], [], ...
-    %     lxlog, lylog, lsave);
+%     x = Dmix .* 100^2; %cm2 s-1
+%     xticks = 10.^[log10(Dmix_lo.*100^2):1:log10(Dmix_hi.*100^2)];
+%     y = Csat;  %ug m-3
+%     yticks = 10.^[-5:2:8];
+%     z = log10(Xi(:,:,isize));
+%     zVec = reshape(z,1,size(z,1)*size(z,2));
+%     zticks = [-20:3:20];
+%     zlbl = zticks;
+%     lxlog = 1;
+%     lylog = 1;
+%     lsave = 1;
+%     plot_contour(x, y, z, zticks, zlbl, 'Diffusivity (cm^2 s^{-1})', ...
+%         'Saturation Concentration (\mu g m^{-3})', ...
+%         ['X (= \tau_{evap}/\tau_{mix}) for particles of size ' num2str(Dp(isize)*1.0e6) ' \mum'],...
+%         'tex', [x(1),x(end)], [y(1),y(end)], xticks, yticks, 'Figs/', ...
+%         ['X_from_DiffVol_Dp' num2str(isize)], [], ...
+%         lxlog, lylog, lsave);
 % end
 
 %Plot X as a function of Size and Volatility
 for imix = 1:length(Dmix)
-    x = Csat;  %ug m-3
-    xticks = 10.^[log10(Csat_lo):2:log10(Csat_hi)];
-    y = Dp; %m
-    yticks = 10.^[log10(Dp_lo):1:log10(Dp_hi)];
+    x = log10(Csat);  %ug m-3
+    xticks = [log10(Csat_lo):2:log10(Csat_hi)];
+    xticklbl = cellstr(num2str(round(xticks(:)), '10^{%d}'));
+    y = log10(Dp); %m
+    yticks = [log10(Dp_lo):1:log10(Dp_hi)];
+    yticklbl = cellstr(num2str(round(yticks(:)), '10^{%d}'));
     z = log10(squeeze(Xi(:,imix,:))');
     zVec = reshape(z,1,size(z,1)*size(z,2));
-    zticks = [-10:2:20];
-    zlbl = zticks;
-    lxlog = 1;
-    lylog = 1;
+    zticks = [-20:2:20];
+    lzlog = 0;
+    lxlog = 0;
+    lylog = 0;
     lsave = 1;
-    plot_contour(x, y, z, zticks, zlbl, ...
-        'Saturation Concentration (\mu g m^{-3})','Size (m)', ...
+    plot_contour(x, y, z, zticks, lzlog, ...
+        'Saturation Concentration (\mu g m^{-3})','Particle Diameter (m)', ...
         ['X (= \tau_{evap}/\tau_{mix}) for Diffusivity ' num2str(Dmix(imix)*100^2) ' cm^2 s^{-1}'],...
-        'tex', [x(1),x(end)], [y(1),y(end)], xticks, yticks, 'Figs/', ...
+        'tex', [x(1),x(end)], [y(1),y(end)], xticks, yticks, xticklbl, yticklbl, ...
+        '../../Figs/Timescale_Analysis/', ...
         ['X_from_DpVol_Diff' num2str(imix)], [], ...
         lxlog, lylog, lsave);
 end
