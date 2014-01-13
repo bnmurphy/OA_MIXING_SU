@@ -95,6 +95,9 @@ Ksol = [13.45378,...
 
 % Diffusion coefficients in air of the surrogate compounds in air at T_ref [m2/s]
 % and the temperature-dependent factor
+D_liq = [9.0e-10] .* ones(1,nspec-1);  %Diffusion of Organic Acids in Water
+D_liq = [D_liq, 1e-3];  %Diffusion of Water in "sort of" water
+
 Dn_air = [5.0e-6 ] .* ones(1,nspec-1); 
 Dn_air = [Dn_air, 3.e-5]; %Add diffusion of water
 mu1 = [1.75 ] .* ones(1,nspec);
@@ -152,14 +155,23 @@ Tmelt = [408,...
 
      
 % Heat Capacity of Vapor, Liquid and Solid Phases
-Cp_sld = [linspace(140,340,nspec-1)]; %J mol-1 K-1
-Cp_sld = [Cp_sld, 37.94];  %Concatenate Solid Ice
+Cv_sld = [11,...
+          14,...
+          17,...
+          20,...
+          23,...
+          26,...
+          29,...
+          32,...
+          37] .*3.*R;  %J mol-1 K-1
+Cv_sld = [Cv_sld, 37.94];  %Concatenate Solid Ice
 
-Cp_liq = [linspace(220,650,nspec-1)]; %J mol-1 K-1
-Cp_liq = [Cp_liq, 35.3]; %75.36  Concatenate Liquid Water
+Cp_liq = [linspace(1000,1500,nspec-1)]; %J mol-1 K-1
+Cp_liq = [Cp_liq, 50]; %75.36  Concatenate Liquid Water
 
 Cp_vap = 140 .* ones(1,nspec-1); %J mol-1 K-1
 Cp_vap = [Cp_vap, 33.6]; %Concatenate Water Vapor
+Cv_vap = Cp_vap - R;     %Constant Volume Heat Capacity
 
 % Mass and thermal accommodation coefficients of the surrogate species
 alpha_m = [0.05 ] .* ones(1,nspec);

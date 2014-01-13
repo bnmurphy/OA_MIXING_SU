@@ -1,6 +1,6 @@
-function [flx0, p_h2o] = fluxes_bulk(t,input,dt,nspec,Cp_liq,Cp_vap,...
-    pstar,dHvap,T_ref,MW,sigma1,rhol,Dn_air,mu1,alpha_m,DSC,molec_group_flag,...
-    molec_group_stoich)
+function [flx0, p_h2o] = fluxes_bulk(t,input,dt,nspec,Cv_sld,Cp_liq,Cv_vap,...
+    pstar,dHfus,dHvap,Tmelt,T_ref,MW,sigma1,rhol,D_liq,Dn_air,mu1,alpha_m,...
+    DSC,molec_group_flag,molec_group_stoich)
 
 R = 8.314472;
 %Load Local Variables
@@ -41,11 +41,14 @@ end
 % Equilibrium pressures at the DSC temperature (should be Pa)
 psat(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T)./R);
 csat(1:nspec) = MW.*psat./R./T;
+
+
 % Diffusion coefficients of the species
 D_air(1:nspec) = Dn_air(1:nspec).*(T/T_ref).^mu1(1:nspec);
 
 % Calculating the composition    
 OLc_tot = sum(OLc);
+Sc_tot = sum(Sc);
 if sum(OLc) > 1.0e-22;
     
     % Mole fractions
@@ -54,8 +57,9 @@ if sum(OLc) > 1.0e-22;
     Xm(1:nspec) = n_apu(1:nspec) ./ n_tot_apu;
     
     %Get Activity Coefficients
-    ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm, molec_group_flag, molec_group_stoich, T);
-    gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector    
+%     ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm, molec_group_flag, molec_group_stoich, T);
+%     gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector    
+    gamma = ones(1,nspec);
     
     % Bulk density (Mass-weighted)
     rhol = sum(X(1:nspec).*rhol(1:nspec));
@@ -81,31 +85,29 @@ end
 % Pressure at the bulk surface (Pa)
 pv_a(1:nspec) = peq;
 
-% Partial pressures far away from the bulk (Pa)
+% Partial pressures far away from the bulk surface (Pa)
 pv_i(1:nspec) = Gc(1:nspec).*R.*T./MW(1:nspec);
 % pv_i(nspec) = 0;
 
-% Mass flux of each compound between the organic liquid and gas phases   kg s-1
+
+%%%%%%%%%%%%%%%%%%%
+% Gas-Liquid Mass flux  kg s-1
+%%%%%%%%%%%%%%%%%%%
 G2OL_flx = zeros(1,nspec);
 for i = 1:nspec
     ln_fact = (1.0 - pv_a(i)./press)/(1.0 - pv_i(i)./press);
     if OLc_tot > 0.0 
         
-        if ln_fact > 0.0  %Evaporation
-                          %Stefan (Convective) Flow + Diffusive Flow
-            
+        if ln_fact > 0.0  %Calculate Flux to the Particles            
             G2OL_flx(i) = DSC.Area.*D_air(i)./DSC.L .*MW(i).*press./R./T.* ...
                 log((1.0 - pv_a(i)./press)./(1.0 - pv_i(1,i)./press)); %kg/s
-            
-        else        %Condensation
-                    %Just Diffusive flow
-            
+        else
             G2OL_flx(i) = DSC.Area.*D_air(i)./DSC.L .* ...
                 (pv_i(i)-pv_a(i)) ./R./T.*MW(i); %kg/s
         end
         
     else    %Not enough mass; Do Nothing
-        OL_flx(i) = 0.0;
+        G2OL_flx(i) = 0.0;
     end
 end
 
@@ -113,9 +115,40 @@ if G2OL_flx(nspec) > 0.0
     G2OL_flx(nspec);
 end
 
+%%%%%%%%%%%%%%%%%%%
+% Solid-Liquid Mass flux  kg s-1
+%%%%%%%%%%%%%%%%%%%
+%Calcuate solubility (xsol) as a fxn of T
+xsol(1:nspec) = 1./gamma(1:nspec) .* exp(dHfus./R .* (1./Tmelt - 1./T));
+
+Sc2OL_flx = zeros(1,nspec);
+% for i = 1:nspec
+%     ln_fact = (1.0 - xsol)/(1.0 - Xm);
+%     if Sc_tot > 0.0 
+%         
+%         if ln_fact > 0.0  %Calculate flux to the solid phase
+%             Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
+%                 log((1.0 - xsol(i))./(1.0 - Xm(i))); %kg/s
+%             
+%         else        
+%             Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
+%                 (Xm(i)-xsol(i)); %kg/s
+%         end
+%         
+%     else    %Not enough mass; Do Nothing
+%         Sc2OL_flx(i) = 0.0;
+%     end
+% end
+% 
+% if Sc2OL_flx(nspec) > 0.0
+%     Sc2OL_flx(nspec);
+% end
+
+
+
 % Sum up all of the production and loss terms
-Sc_flx(1:nspec) = 0.0;  %kg s-1
-OLc_flx(1:nspec) = G2OL_flx; %kg s-1
+Sc_flx(1:nspec) = +Sc2OL_flx;  %kg s-1
+OLc_flx(1:nspec) = G2OL_flx - Sc2OL_flx; %kg s-1
 Gc_flx(1:nspec) = -G2OL_flx ./ vap_vol; %kg m-3 s-1
 
 % Calc Water Equilibrium
@@ -124,19 +157,24 @@ mass_eqh2o_liq = DSC.h2o - mass_eqh2o_vap; %kg
 
 
 %Energy Balance (Q is going into the system)
-dT_latent = sum( G2OL_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
+dT_latent_gasliq = sum( G2OL_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
+dT_latent_solliq = 0.0; %sum( Sc2OL_flx(1:nspec) .* dHfus(1:nspec) ./ MW(1:nspec) ); %J s-1
+
+% dT_Cvsol = sum( Sc(1:nspec) .* Cv_sld(1:nspec) ./ MW(1:nspec) ); %J K-1
 dT_Cpliq = sum( OLc(1:nspec) .* Cp_liq(1:nspec) ./ MW(1:nspec) ); %J K-1
-dT_Cpvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cp_vap(1:nspec)./ MW(1:nspec)); %J K-1
-dTdt = ( Qin + dT_latent) / (dT_Cpliq + dT_Cpvap);  %K s-1
+dT_Cvvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cv_vap(1:nspec)./ MW(1:nspec)); %J K-1
+dTdt = ( Qin + dT_latent_gasliq) / ... % + dT_latent_solliq) / ...
+        (dT_Cpliq + dT_Cvvap); % + dT_Cvsol);  %K s-1
 
 
+    
 %Store [Pressure, Press_H2O, Pvap_H2O, EqVapMass_H2O, EqLigMass_H2O,
 %       Flux_H2O, TotLiqVol, TotVapVol]
 p_h2o = [press, pv_i(nspec), pv_a(nspec), ...
     mass_eqh2o_vap, mass_eqh2o_liq, G2OL_flx(nspec), liq_vol, vap_vol,...
-    dT_latent];
-fprintf(1,'time: %4.2f  T(degC): %3.2f  H2O_flux(mg/s): %10.3e   LatentHeat: %10.3e   Lat/Q: %10.3e\n',...
-    t, T-273.15, G2OL_flx(nspec).*1e6,dT_latent,dT_latent/Qin);
+    dT_latent_gasliq, dT_latent_solliq];
+fprintf(1,'time: %4.2f  T(degC): %3.2f  H2O_gas_liq_flux(mg/s): %10.3e   LatentHeat: %10.3e   Lat/Q: %10.3e\n',...
+    t, T-273.15, G2OL_flx(nspec).*1e6,dT_latent_gasliq,dT_latent_gasliq/Qin);
 
 
 
