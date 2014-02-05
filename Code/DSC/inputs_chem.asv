@@ -171,7 +171,7 @@ Cp_liq = [Cp_liq, 35.3]; %75.36  Concatenate Liquid Water
 
 Cp_vap = 140 .* ones(1,nspec-1); %J mol-1 K-1
 Cp_vap = [Cp_vap, 33.6]; %Concatenate Water Vapor
-Cv_vap = Cp_vap; % - R;     %Constant Volume Heat Capacity
+Cv_vap = Cp_vap - R;     %Constant Volume Heat Capacity
 
 % Mass and thermal accommodation coefficients of the surrogate species
 alpha_m = [0.05 ] .* ones(1,nspec);

@@ -35,7 +35,7 @@ exp_name = 'CappaMix_01';
 DSC_Data_Folder = 'DSC_DATA/';
 plotDir = ['../../Figs/DSC/' exp_name '/'];
 addpath ../AIOMFAC;
-
+ 
 
 % Loading the inputs:
 % DSC properties and Experimental Data
