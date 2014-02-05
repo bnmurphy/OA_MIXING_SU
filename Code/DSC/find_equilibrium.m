@@ -15,8 +15,9 @@ R = 8.314; %Gas constant [J mol-1 K-1]
 nspec = length(MW);
 
 %Get Activity Coefficients
-ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm_i, molec_group_flag, molec_group_stoich, T_i);
-gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector  
+% ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm_i, molec_group_flag, molec_group_stoich, T_i);
+% gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector  
+gamma = ones(1,nspec);
 
 % Equilibrium pressures at the DSC temperature
 psat = gamma .* pstar.*exp(dHvap.*(1./T_ref - 1./T_i)./R);
