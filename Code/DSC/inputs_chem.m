@@ -166,7 +166,7 @@ Cv_sld = [11,...
           37] .*3.*R;  %J mol-1 K-1
 Cv_sld = [Cv_sld, 37.94];  %Concatenate Solid Ice
 
-Cp_liq = [linspace(1000,1500,nspec-1)]; %J mol-1 K-1
+Cp_liq = [linspace(220,600,nspec-1)]; %J mol-1 K-1
 Cp_liq = [Cp_liq, 50]; %75.36  Concatenate Liquid Water
 
 Cp_vap = 140 .* ones(1,nspec-1); %J mol-1 K-1

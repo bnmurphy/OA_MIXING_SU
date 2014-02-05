@@ -57,9 +57,9 @@ if sum(OLc) > 1.0e-22;
     Xm(1:nspec) = n_apu(1:nspec) ./ n_tot_apu;
     
     %Get Activity Coefficients
-%     ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm, molec_group_flag, molec_group_stoich, T);
-%     gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector    
-    gamma = ones(1,nspec);
+    ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm, molec_group_flag, molec_group_stoich, T);
+    gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector    
+%     gamma = ones(1,nspec);
     
     % Bulk density (Mass-weighted)
     rhol = sum(X(1:nspec).*rhol(1:nspec));

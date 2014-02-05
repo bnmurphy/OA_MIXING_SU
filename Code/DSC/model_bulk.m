@@ -31,7 +31,7 @@ clear(PersistentVarNames{:});
 % clear all
 
 %File structure
-exp_name = 'CappaMix_04_H2O_025';
+exp_name = 'CappaMix_01';
 DSC_Data_Folder = 'DSC_DATA/';
 plotDir = ['../../Figs/DSC/' exp_name '/'];
 addpath ../AIOMFAC;
