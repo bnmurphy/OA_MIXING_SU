@@ -122,33 +122,33 @@ end
 xsol(1:nspec) = 1./gamma(1:nspec) .* exp(dHfus./R .* (1./Tmelt - 1./T));
 
 Sc2OL_flx = zeros(1,nspec);
-% for i = 1:nspec
-%     ln_fact = (1.0 - xsol)/(1.0 - Xm);
-%     if Sc_tot > 0.0 
-%         
-%         if ln_fact > 0.0  %Calculate flux to the solid phase
-%             Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
-%                 log((1.0 - xsol(i))./(1.0 - Xm(i))); %kg/s
-%             
-%         else        
-%             Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
-%                 (Xm(i)-xsol(i)); %kg/s
-%         end
-%         
-%     else    %Not enough mass; Do Nothing
-%         Sc2OL_flx(i) = 0.0;
-%     end
-% end
-% 
-% if Sc2OL_flx(nspec) > 0.0
-%     Sc2OL_flx(nspec);
-% end
+for i = 1:nspec
+    ln_fact = (1.0 - Xm(i))/(1.0 - xsol(i));
+    if Sc_tot > 0.0 
+        
+        if ln_fact > 0.0  %Calculate flux to the solid phase
+            Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
+                log((1.0 - Xm(i))./(1.0 - xsol(i))); %kg/s
+            
+        else        
+            Sc2OL_flx(i) = DSC.Area.*D_liq(i)./(DSC.L./10) .*MW(i).*rhol.* ...
+                (xsol(i)-Xm(i)); %kg/s
+        end
+        
+    else    %Not enough mass; Do Nothing
+        Sc2OL_flx(i) = 0.0;
+    end
+end
+
+if Sc2OL_flx(nspec) > 0.0
+    Sc2OL_flx(nspec);
+end
 
 
 
 % Sum up all of the production and loss terms
-Sc_flx(1:nspec) = +Sc2OL_flx;  %kg s-1
-OLc_flx(1:nspec) = G2OL_flx - Sc2OL_flx; %kg s-1
+Sc_flx(1:nspec) = -Sc2OL_flx;  %kg s-1
+OLc_flx(1:nspec) = G2OL_flx + Sc2OL_flx; %kg s-1
 Gc_flx(1:nspec) = -G2OL_flx ./ vap_vol; %kg m-3 s-1
 
 % Calc Water Equilibrium
@@ -158,13 +158,13 @@ mass_eqh2o_liq = DSC.h2o - mass_eqh2o_vap; %kg
 
 %Energy Balance (Q is going into the system)
 dT_latent_gasliq = sum( G2OL_flx(1:nspec) .* dHvap(1:nspec) ./ MW(1:nspec) ); %J s-1
-dT_latent_solliq = 0.0; %sum( Sc2OL_flx(1:nspec) .* dHfus(1:nspec) ./ MW(1:nspec) ); %J s-1
+dT_latent_solliq = sum( -Sc2OL_flx(1:nspec) .* dHfus(1:nspec) ./ MW(1:nspec) ); %J s-1
 
-% dT_Cvsol = sum( Sc(1:nspec) .* Cv_sld(1:nspec) ./ MW(1:nspec) ); %J K-1
+dT_Cvsol = sum( Sc(1:nspec) .* Cv_sld(1:nspec) ./ MW(1:nspec) ); %J K-1
 dT_Cpliq = sum( OLc(1:nspec) .* Cp_liq(1:nspec) ./ MW(1:nspec) ); %J K-1
 dT_Cvvap = sum( Gc(1:nspec) .* DSC.vap_vol .* Cv_vap(1:nspec)./ MW(1:nspec)); %J K-1
-dTdt = ( Qin + dT_latent_gasliq) / ... % + dT_latent_solliq) / ...
-        (dT_Cpliq + dT_Cvvap); % + dT_Cvsol);  %K s-1
+dTdt = ( Qin + dT_latent_gasliq + dT_latent_solliq) / ...
+        (dT_Cpliq + dT_Cvvap + dT_Cvsol);  %K s-1
 
 
     
@@ -175,8 +175,9 @@ p_h2o = [press, pv_i(nspec), pv_a(nspec), ...
     dT_latent_gasliq, dT_latent_solliq];
 % fprintf(1,'time: %4.2f  T(degC): %3.2f  H2O_gas_liq_flux(mg/s): %10.3e   LatentHeat: %10.3e   Lat/Q: %10.3e\n',...
 %     t, T-273.15, G2OL_flx(nspec).*1e6,dT_latent_gasliq,dT_latent_gasliq/Qin);
-fprintf(1,'time: %4.2f  T(degC): %3.2f  OLc_flux(mg/s): %10.3e   LatentHeat: %10.3e   dTCpliq: %10.3e   dTCpVap: %10.3e   dTdt: %10.3e\n',...
-    t, T-273.15, G2OL_flx(1).*1e6,dT_latent_gasliq,dT_Cpliq,dT_Cvvap,dTdt);
+fprintf(1,'time: %4.2f  T(degC): %3.2f  G/L/S Sum: %10.3e/%10.3e/%10.3e  Qin: %6.3f  LH_liq: %10.3e  LH_sol: %10.3e  dTCp: %10.3e/%10.3e/%10.3e  dTdt: %10.3e\n',...
+    t, T-273.15, sum(Gc),sum(OLc),sum(Sc),Qin, dT_latent_gasliq,...
+    dT_latent_solliq, dT_Cvsol, dT_Cpliq, dT_Cvvap, dTdt);
 
 
 if dTdt ~= dTdt

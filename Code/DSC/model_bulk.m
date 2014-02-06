@@ -84,9 +84,9 @@ lambda(1:nspec) = 3.*D_air./c_ave;
 % Gas phase concentrations [kg/m3]
 Gc(1:nspec) = cgas(1:nspec);
 % Organic Luquid total mass [kg]
-OLc(1:nspec) = corg_liq(1:nspec) + corg_sld(1:nspec);
+OLc(1:nspec) = corg_liq(1:nspec);
 % Solid Phase total mass [kg]
-Sc(1:nspec) = 0.0;  %msld_i(1:nspec);
+Sc(1:nspec) =  corg_sld(1:nspec);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,8 +131,9 @@ end
 Cp_sys = Q ./ dT; %dE/dT -> J/degC
 
 %Normalize with experimental mass to get specific heat capacity
+Sc_out = output(1:length(time),2:nspec+1); %kg
 OLc_out = output(1:length(time),nspec+2: 2*nspec+1); %kg
-Cp_sys = Cp_sys ./ sum(OLc_out,2);  %dE/dT -> J/(kg degC)
+Cp_sys = Cp_sys ./ ( sum(OLc_out,2) + sum(Sc_out,2) );  %dE/dT -> J/(kg degC)
 
 T_out = output(:,1) - 273.15;  %K -> deg C
 
@@ -152,10 +153,10 @@ plot_2D({DSC.time, time'}, {DSC.Cp./1000, Cp_sys./1000},{1,0},'Time(s)','Heat Ca
     plotDir,'DSC_Cp',{'Measured','Modeled'},lylog,1)
 
 %Plot Chemical Composition of All Phases
-Sc_out = output(1:length(time),2:nspec+1) .* 1e6; %kg -> mg
+Sc_out = Sc_out .* 1e9; %kg -> ug
 Y_limit = ceil(meas.mass/10)*10;
 ylog = 0;  %Linear Y-axis
-plot_area(time', Sc_out,'Time(s)','Solid Mass (mg)',...
+plot_area(time', Sc_out,'Time(s)','Solid Mass (\mug)',...
     'Solid Composition Evolution',[1,time(end)],[0,Y_limit],ylog,...
     plotDir,'DSC_Solid_Chem',{},1)
 

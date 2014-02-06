@@ -15,9 +15,9 @@ R = 8.314; %Gas constant [J mol-1 K-1]
 nspec = length(MW);
 
 %Get Activity Coefficients
-% ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm_i, molec_group_flag, molec_group_stoich, T_i);
-% gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector  
-gamma = ones(1,nspec);
+ln_gamma = AIOMFAC_gamma_SR_v1(nspec, Xm_i, molec_group_flag, molec_group_stoich, T_i);
+gamma = exp(nonzeros(ln_gamma))';  %Convert activity coeff sparse matrix to vector  
+% gamma = ones(1,nspec);
 
 % Equilibrium pressures at the DSC temperature
 psat = gamma .* pstar.*exp(dHvap.*(1./T_ref - 1./T_i)./R);
@@ -84,15 +84,15 @@ while (guess2-guess1) > 0.00001 && i < 100
     i = i + 1;
 end
 csld_i = ctot_i - cliq_i; %Total moles of solid [mol/m3]
-%cliq_i = ctot_i - csld_i; %Total moles of liquid [mol/m3]
+% cliq_i = ctot_i - csld_i; %Total moles of liquid [mol/m3]
 
 Xm_i = cliq_i ./ sum(cliq_i); %Mole fraction of each species in the liquid phase
 
 %Calculate Liquid Phase Mass Fractions
 X_i = Xm_i.*MW ./ sum( Xm_i.*MW );
 
-mliq_i = cliq_i .* MW .* DSC.liq_vol; %kg of liquid
-msld_i = csld_i .* MW .* DSC.liq_vol; %kg of solid
+mliq_i = cliq_i .* MW .* DSC.tot_vol; %kg of liquid
+msld_i = csld_i .* MW .* DSC.tot_vol; %kg of solid
 
                             
 end
