@@ -8,6 +8,12 @@ persistent AFCData_Main_save
 persistent s_i_n
 persistent Q_k_i
 persistent u_i_m_n
+% q_i = [];
+% r_i = [];
+% AFCData_Main_save = [];
+% s_i_n = [];
+% Q_k_i = [];
+% u_i_m_n = [];
 %***********************************************************************
 molecule_group_flag=sparse(molecule_group_flag);
 molecule_group_stoich=sparse(molecule_group_stoich);

@@ -1,19 +1,24 @@
 function mfr_dist = model_size_dist(X_i, c_aer_dist_int, alpha_in, TD_in, dhvap_in)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This is the main program to model the dynamic evaporation in the TD     %
+% This is the main program to model the dynamic evaporation in the        %
+%   Differential Scanning Calorimeter. An energy profile and mixture      %
+%   properties are input to the model and temperature and concentration   %
+%   profiles are output                                                   %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % close all
 % clear all
 
 % Loading the inputs:
-% Residence time, TD length and constants
-inputs_TD
+% DSC properties and Experimental Data
+inputs_DSC
 % Properties of the evaporating compounds
-inputs_manish_modi
+inputs_chem
+
 % Size distribution
-inputs_size_dist_modi
+%  (Comment out now because the DSC system treats one flat surface)
+% inputs_aero
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
@@ -67,19 +72,9 @@ Trial = k;
 
 % Time
 time0 = 0;
-% Space
-x_coord0 = l_heat.*time0./t_res_heat;
 
-% if t_res_heat <17.0 && t_res_heat >13.0
-% % Temperature profile for 16 s residence time in the beginning of the
-% % reactor
-%  para0 = [2.4509 -8.0918 5.0610 0.1405];
-%  T_nd0 = para0(1).*x_coord0.^3 + para0(2).*x_coord0.^2 + para0(3).*x_coord0 + para0(4);
-%  T_TD(1) = T_nd0.*(T_f(k) - T_i) + T_i;
-% else
 % % Flat temperature profile
 T_TD(1) = T_f(k);
-% end
 
 % Equilibrium pressures at the TD temperature
 psat(1:nspec) = pstar.*exp(dHvap.*(1./T_ref - 1./T_TD(1))./R);
@@ -160,8 +155,8 @@ end
 
 % Solving the mass fluxes 
 options = odeset('RelTol',1E-6,'AbsTol',1E-19);    
-[tout, output0] = ode45(@fluxes_size_dist, time, input0,  options, dt,nbins,nspec,l_heat,t_res_heat,...
-    T_f(k),T_i,n_tot_i,n_dist_i,pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m,alpha_t);
+[tout, output0] = ode45(@fluxes_size_dist, time, input0,  options, dt,nbins,nspec,...
+    T_f(k),T_i,n_tot_i,n_dist_i,pstar,dHvap,T_ref,MW,sigma1,rho,Dn,mu1,p,alpha_m);
 
 % % Converting back to our format
 for i = 1:nspec
